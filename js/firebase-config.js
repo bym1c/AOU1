@@ -2,7 +2,7 @@
 window.FIREBASE_CONFIG={
   apiKey:"",
   authDomain:"",
-  databaseURL:"",
+  databaseURL:"https://console.firebase.google.com/project/aouinv/database/aouinv-default-rtdb/data/~2F",
   projectId:"",
   appId:""
 };

@@ -37,7 +37,7 @@ const DATE={26:"2026-10-26",27:"2026-10-27",28:"2026-10-28"};
 
 /* ===== رموز QR (يظهران على الجانب، والضغط عليهما يكبّرهما) =====
    لتغيير الصورة: استبدل assets/qr/qr1.png و qr2.png بنفس الاسم. لتغيير النص: عدّل title و sub هنا. */
-const SHOW_QR=true;   // true = تظهر الرموز، false = تختفي بالكامل (الأزرار والاختصارات 1/2)
+const SHOW_QR=false;   // true = تظهر الرموز، false = تختفي بالكامل (الأزرار والاختصارات 1/2)
 const QR_SIDE="left"; // مكانها: "left" يسار أو "right" يمين
 const QR_AUTOCLOSE=120; // ثواني، يقفل لحاله لو نسيته مفتوح
 const QR=[
@@ -56,4 +56,4 @@ const CTRL_SIDE="left"; // مكان أزرار التحكم تحت: "left" أو 
    REMOTE=true : أزرار التحكم تختفي من الشاشة العامة، والتغيير يتم من صفحة admin.html بحساب الأدمن فقط،
                  وتتحدث الشاشة فوراً. يحتاج Firebase (راجع README) وملء js/firebase-config.js.
    REMOTE=false: التحكم المحلي من أزرار الشاشة (الوضع اليدوي). */
-const REMOTE=false;
+const REMOTE=true;
