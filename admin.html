@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>لوحة تحكم الشاشة</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="css/style.css">
+<style>
+html,body{overflow:auto!important;height:auto!important;cursor:auto!important;font-size:17px!important;background:#002D58}
+body{min-height:100vh;padding:18px;color:#E8E6DF}
+.w{max-width:680px;margin:0 auto}
+h1{font-size:24px;margin:6px 0 16px;font-weight:800}
+.box{background:#ffffff14;border:1px solid #ffffff2a;border-radius:16px;padding:16px;margin-bottom:14px}
+input{width:100%;font:inherit;font-size:17px;padding:13px 14px;border-radius:12px;border:1px solid #ffffff40;background:#001a35;color:#E8E6DF;margin-bottom:10px}
+button{font:inherit;cursor:pointer}
+.b{display:block;width:100%;text-align:right;font-size:17px;color:#E8E6DF;background:#ffffff14;border:1px solid #ffffff2a;border-radius:12px;padding:13px 14px;margin-bottom:8px}
+.b:hover,.b:active{background:#F3B200;color:#002D58}
+.b.on{border-color:#5CBDAF;background:#5CBDAF30}
+.p{background:#F3B200;color:#002D58;font-weight:700;text-align:center}
+.row{display:flex;gap:10px}.row .b{text-align:center;font-size:19px;font-weight:700}
+.t{color:#F3B200;font-weight:700;margin:14px 0 8px}
+#msg{min-height:22px;color:#F3B200;margin:6px 0}
+.s{font-size:15px;color:#E8E6DFc4}
+#lo{background:none;border:0;color:#E8E6DFc4;text-decoration:underline;font-size:15px;float:left}
+</style>
+</head>
+<body><div class="w">
+<h1>لوحة تحكم الشاشة <button id="lo" type="button" hidden>خروج</button></h1>
+<div id="msg"></div>
+<div id="login" class="box" hidden>
+ <input id="em" type="email" placeholder="البريد الإلكتروني" autocomplete="username">
+ <input id="pw" type="password" placeholder="كلمة المرور" autocomplete="current-password">
+ <button id="go" class="b p" type="button">دخول</button>
+</div>
+<div id="panel" hidden>
+ <div class="box"><div class="s">على الشاشة الآن</div><div id="now" style="font-size:19px;font-weight:700;margin-top:4px">—</div></div>
+ <div class="row"><button id="pv" class="b" type="button">السابق</button><button id="nx" class="b p" type="button">التالي</button></div>
+ <div class="t">اختر اليوم</div><div id="days"></div>
+ <div class="t" id="evt" hidden>اختر الجلسة أو الحدث</div><div id="evs"></div>
+ <button id="zero" class="b" type="button" style="margin-top:12px">قبل البداية (شاشة الشعارات)</button>
+</div>
+</div>
+<script src="js/firebase-config.js"></script>
+<script src="js/config.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getDatabase,ref,onValue,set,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const $=id=>document.getElementById(id),msg=t=>$("msg").textContent=t||"";
+const C=window.FIREBASE_CONFIG;
+if(!C||!C.databaseURL){msg("أضف إعدادات Firebase في js/firebase-config.js أولاً.")}
+else{
+ const app=initializeApp(C),db=getDatabase(app),auth=getAuth(app),st=ref(db,"screen/state");
+ const DN={26:"الاثنين 26 أكتوبر",27:"الثلاثاء 27 أكتوبر",28:"الأربعاء 28 أكتوبر"};
+ const ev=E.map(([d,a,b,t],i)=>({d,t,i}));let sel=-1,day=26;
+ const send=i=>{i=Math.max(-1,Math.min(ev.length-1,i));msg("");set(st,{sel:i,ts:serverTimestamp()}).catch(()=>msg("ما عندك صلاحية التغيير. تأكد أنك دخلت بحساب الأدمن."))};
+ function draw(){
+  $("now").textContent=sel>=0?ev[sel].t:"قبل البداية (شاشة الشعارات)";
+  $("days").innerHTML=Object.keys(DN).map(d=>'<button class="b'+(+d===day?" on":"")+'" data-d="'+d+'" type="button">'+DN[d]+"</button>").join("");
+  $("evt").hidden=false;
+  $("evs").innerHTML=ev.filter(e=>e.d===day).map(e=>'<button class="b'+(e.i===sel?" on":"")+'" data-i="'+e.i+'" type="button">'+e.t+"</button>").join("")}
+ $("days").onclick=e=>{const b=e.target.closest("[data-d]");if(b){day=+b.dataset.d;draw()}};
+ $("evs").onclick=e=>{const b=e.target.closest("[data-i]");if(b)send(+b.dataset.i)};
+ $("pv").onclick=()=>send(sel-1);$("nx").onclick=()=>send(sel+1);$("zero").onclick=()=>send(-1);
+ $("go").onclick=()=>{msg("");signInWithEmailAndPassword(auth,$("em").value.trim(),$("pw").value).catch(()=>msg("البريد أو كلمة المرور غير صحيحة."))};
+ $("pw").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
+ $("lo").onclick=()=>signOut(auth);
+ onAuthStateChanged(auth,u=>{$("login").hidden=!!u;$("panel").hidden=!u;$("lo").hidden=!u;if(u)draw()});
+ onValue(st,s=>{const v=s.val();if(v&&typeof v.sel==="number"){sel=v.sel;if(sel>=0)day=ev[sel].d}if(!$("panel").hidden)draw()});
+}
+</script>
+</body></html>
